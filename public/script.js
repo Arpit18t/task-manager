@@ -1,15 +1,18 @@
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+const API = "/api/tasks";
+let tasks = [];
 let editId = null;
 
 const input = document.getElementById("taskInput");
 const addBtn = document.getElementById("addBtn");
 const list = document.getElementById("taskList");
 
-function save() {
-  localStorage.setItem("tasks", JSON.stringify(tasks));
+// READ
+async function loadTasks() {
+  const res = await fetch(API);
+  tasks = await res.json();
+  render();
 }
 
-// READ
 function render() {
   list.innerHTML = "";
   tasks.forEach(task => {
@@ -36,25 +39,30 @@ function render() {
 }
 
 // CREATE + UPDATE
-addBtn.addEventListener("click", () => {
+addBtn.addEventListener("click", async () => {
   const text = input.value.trim();
   if (!text) return;
 
   if (editId === null) {
-    tasks.push({ id: Date.now(), text });          // Create
+    await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
   } else {
-    const task = tasks.find(t => t.id === editId); // Update
-    task.text = text;
+    await fetch(`${API}/${editId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
     editId = null;
     addBtn.textContent = "Add";
   }
 
   input.value = "";
-  save();
-  render();
+  loadTasks();
 });
 
-// UPDATE (form mein purana text laao)
 function editTask(id) {
   const task = tasks.find(t => t.id === id);
   input.value = task.text;
@@ -64,10 +72,9 @@ function editTask(id) {
 }
 
 // DELETE
-function deleteTask(id) {
-  tasks = tasks.filter(t => t.id !== id);
-  save();
-  render();
+async function deleteTask(id) {
+  await fetch(`${API}/${id}`, { method: "DELETE" });
+  loadTasks();
 }
 
-render();
+loadTasks();

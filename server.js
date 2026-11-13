@@ -6,10 +6,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, "tasks.json");
 
-app.use(express.json());                                  // JSON body padhne ke liye
-app.use(express.static(path.join(__dirname, "public")));  // frontend serve karega
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
-// ---- helper functions ----
 function readTasks() {
   if (!fs.existsSync(DB_FILE)) return [];
   return JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
@@ -19,12 +18,12 @@ function writeTasks(tasks) {
   fs.writeFileSync(DB_FILE, JSON.stringify(tasks, null, 2));
 }
 
-// ---- READ: saare tasks ----
+// READ
 app.get("/api/tasks", (req, res) => {
   res.json(readTasks());
 });
 
-// ---- CREATE ----
+// CREATE
 app.post("/api/tasks", (req, res) => {
   const text = (req.body.text || "").trim();
   if (!text) return res.status(400).json({ error: "Text required hai" });
@@ -37,7 +36,7 @@ app.post("/api/tasks", (req, res) => {
   res.status(201).json(newTask);
 });
 
-// ---- UPDATE ----
+// UPDATE
 app.put("/api/tasks/:id", (req, res) => {
   const id = Number(req.params.id);
   const text = (req.body.text || "").trim();
@@ -52,7 +51,7 @@ app.put("/api/tasks/:id", (req, res) => {
   res.json(task);
 });
 
-// ---- DELETE ----
+// DELETE
 app.delete("/api/tasks/:id", (req, res) => {
   const id = Number(req.params.id);
   const tasks = readTasks();
